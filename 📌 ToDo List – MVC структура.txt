@@ -1,0 +1,128 @@
+📌 ToDo List – MVC структура
+🔹 Model (Модел)
+
+Това е частта, която описва данните и тяхната структура.
+В нашия случай това ще е задача (Task/ToDoItem).
+
+Примерен клас:public class ToDoItem
+{
+    public int Id { get; set; }             // Уникален идентификатор
+    public string Title { get; set; }       // Заглавие на задачата
+    public string Description { get; set; } // Описание
+    public bool IsCompleted { get; set; }   // Статус – завършена или не
+    public DateTime DueDate { get; set; }   // Краен срок
+}
+
+🔹 Controller (Контролер)
+
+Това е "мозъкът" на приложението.
+Контролерът получава заявки от потребителя, обработва ги (често чрез модела) и връща резултат към View.
+
+Примерен контролер:
+
+using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
+using System.Linq;
+
+public class ToDoController : Controller
+{
+    private static List<ToDoItem> tasks = new List<ToDoItem>();
+
+    // Показва всички задачи
+    public IActionResult Index()
+    {
+        return View(tasks);
+    }
+
+    // Форма за създаване
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    // Запазване на нова задача
+    [HttpPost]
+    public IActionResult Create(ToDoItem item)
+    {
+        item.Id = tasks.Count + 1;
+        tasks.Add(item);
+        return RedirectToAction("Index");
+    }
+
+    // Маркиране като завършена
+    public IActionResult Complete(int id)
+    {
+        var task = tasks.FirstOrDefault(t => t.Id == id);
+        if (task != null) task.IsCompleted = true;
+        return RedirectToAction("Index");
+    }
+}
+
+
+
+
+View (Изглед)
+
+Това е UI частта – HTML/CSS + Razor синтаксис за показване на данни.
+
+Примерен изглед за Index.cshtml:
+
+
+
+
+@model List<ToDoItem>
+
+<h2>Списък със задачи</h2>
+<a href="/ToDo/Create">Добави нова задача</a>
+<table>
+    <tr>
+        <th>Заглавие</th>
+        <th>Краен срок</th>
+        <th>Статус</th>
+        <th>Действия</th>
+    </tr>
+    @foreach (var task in Model)
+    {
+        <tr>
+            <td>@task.Title</td>
+            <td>@task.DueDate.ToShortDateString()</td>
+            <td>@(task.IsCompleted ? "Завършена" : "В процес")</td>
+            <td>
+                @if (!task.IsCompleted)
+                {
+                    <a href="/ToDo/Complete/@task.Id">Завърши</a>
+                }
+            </td>
+        </tr>
+    }
+</table>
+
+
+Примерен изглед за Create.cshtml:
+
+
+
+@model ToDoItem
+
+<h2>Нова задача</h2>
+
+<form method="post" asp-action="Create">
+    <label>Заглавие:</label>
+    <input type="text" name="Title" />
+
+    <label>Описание:</label>
+    <textarea name="Description"></textarea>
+
+    <label>Краен срок:</label>
+    <input type="date" name="DueDate" />
+
+    <button type="submit">Запази</button>
+</form>
+
+📌 Обобщение:
+
+Model – класът ToDoItem, който описва структурата на данните.
+
+Controller – ToDoController, който управлява логиката: добавяне, показване, маркиране на задачи.
+
+View – .cshtml файлове (Index.cshtml, Create.cshtml), които показват информацията на потребителя и съдържат формите за въвеждане.
